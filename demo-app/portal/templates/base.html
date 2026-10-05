@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{% if page_title %}{{ page_title }} · {% endif %}Suivi des applications</title>
+  <link rel="stylesheet" href="/static/portal.css">
+</head>
+<body>
+{% if current_user %}
+<div class="workspace">
+  <aside class="sidebar" aria-label="Navigation principale">
+    <a class="brand" href="/applications">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="brand-copy"><strong>REGISTRE</strong><small>Applications stagiaires</small></span>
+    </a>
+    <div class="nav-heading">SUIVI TECHNIQUE</div>
+    <nav class="nav-list">
+      <a class="nav-link {% if request.url.path.startswith('/applications') %}is-current{% endif %}" href="/applications">
+        <span class="nav-glyph" aria-hidden="true">▤</span><span>Applications</span>
+      </a>
+      {% if current_user.role == 'admin' %}
+      <a class="nav-link {% if request.url.path.startswith('/users') %}is-current{% endif %}" href="/users">
+        <span class="nav-glyph" aria-hidden="true">♙</span><span>Comptes</span>
+      </a>
+      {% endif %}
+      <a class="nav-link" href="/grafana/d/stagiaires-applications/applications-stagiaires" target="_blank" rel="noopener">
+        <span class="nav-glyph" aria-hidden="true">⌁</span><span>Supervision</span><span class="external-mark" aria-hidden="true">↗</span>
+      </a>
+    </nav>
+    <div class="sidebar-note">
+      <span class="note-rule" aria-hidden="true"></span>
+      <p>Un service,<br>un responsable,<br>un historique clair.</p>
+      <small>SUPERVISION LOCALE</small>
+    </div>
+    <div class="sidebar-user">
+      <span class="avatar" aria-hidden="true">{{ current_user.name[:1]|upper }}</span>
+      <span class="sidebar-user-copy"><strong>{{ current_user.name }}</strong><small>{{ role_labels[current_user.role] }}</small></span>
+      <a class="icon-button account-link" href="/account/password" aria-label="Modifier mon mot de passe" title="Modifier mon mot de passe">⚿</a>
+      <form action="/logout" method="post" class="logout-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="icon-button" type="submit" aria-label="Se déconnecter" title="Se déconnecter">↪</button>
+      </form>
+    </div>
+  </aside>
+  <main class="main-area">
+    <header class="topbar">
+      <div class="breadcrumb"><span>PORTAIL</span><b aria-hidden="true">/</b><span>{{ page_title|default('Applications suivies') }}</span></div>
+      <div class="topbar-meta"><span class="local-indicator"><i></i> RÉSEAU LOCAL</span><span class="topbar-separator"></span><span>{{ current_user.name }}</span></div>
+    </header>
+    <div class="mobile-nav">
+      <a class="brand brand-mobile" href="/applications">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="brand-copy"><strong>REGISTRE</strong><small>Applications stagiaires</small></span>
+      </a>
+      <nav aria-label="Navigation mobile">
+        <a href="/applications">Applications</a>
+        {% if current_user.role == 'admin' %}<a href="/users">Comptes</a>{% endif %}
+        <a href="/account/password">Mon compte</a>
+        <a href="/grafana/d/stagiaires-applications/applications-stagiaires">Grafana</a>
+        <form action="/logout" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit">Sortie</button>
+        </form>
+      </nav>
+    </div>
+    <section class="page-content">
+      {% if flash %}<div class="flash-message" role="status">{{ flash }}</div>{% endif %}
+      {% block content %}{% endblock %}
+    </section>
+    <footer class="page-footer"><span>PORTAIL DE SUIVI</span><span>DONNÉES CONSERVÉES EN LOCAL</span></footer>
+  </main>
+</div>
+{% else %}
+  {% block public_content %}{% endblock %}
+{% endif %}
+<script src="/static/portal.js" defer></script>
+</body>
+</html>

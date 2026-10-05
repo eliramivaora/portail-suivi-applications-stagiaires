@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">ADMINISTRATION <span>·</span> COMPTES ET DROITS</div>
+    <h1>Comptes utilisateurs</h1>
+    <p class="page-lede">Les accès sont créés par un administrateur. Aucun compte public.</p>
+  </div>
+  <a class="button button-primary" href="/users/new"><span aria-hidden="true">＋</span> Créer un compte</a>
+</div>
+<section class="user-register">
+  <div class="aside-heading"><span>ANNUAIRE DES ACCÈS</span><span class="aside-index">{{ '%02d'|format(users|length) }} COMPTES</span></div>
+  <div class="table-wrap">
+    <table class="applications-table users-table">
+      <thead><tr><th scope="col">UTILISATEUR</th><th scope="col">ADRESSE E-MAIL</th><th scope="col">RÔLE</th><th scope="col">ÉTAT</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+      <tbody>
+      {% for account in users %}
+      <tr>
+        <td data-label="Utilisateur"><span class="owner-cell"><span class="avatar avatar-small" aria-hidden="true">{{ account.name[:1]|upper }}</span><strong>{{ account.name }}</strong></span></td>
+        <td data-label="Adresse e-mail">{{ account.email }}</td>
+        <td data-label="Rôle"><span class="role-label">{{ role_labels[account.role] }}</span></td>
+        <td data-label="État"><span class="account-state {% if account.is_active %}account-active{% else %}account-inactive{% endif %}"><i></i>{{ 'Actif' if account.is_active else 'Désactivé' }}</span></td>
+        <td class="user-action">
+          {% if account.id != current_user.id %}
+          <form method="post" action="/users/{{ account.id }}/toggle">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="text-button" type="submit">{% if account.is_active %}Désactiver{% else %}Activer{% endif %}</button>
+          </form>
+          {% else %}<span class="current-account">Votre compte</span>{% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5"><div class="empty-state"><h2>Aucun compte utilisateur</h2><p>Créez un compte stagiaire ou lecteur pour attribuer les accès.</p></div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="permission-notes">
+    <div><span class="permission-key permission-admin">A</span><p><strong>Administrateur</strong><br>Gère les comptes et toutes les fiches.</p></div>
+    <div><span class="permission-key permission-intern">S</span><p><strong>Stagiaire</strong><br>Consulte et modifie ses propres fiches.</p></div>
+    <div><span class="permission-key permission-reader">L</span><p><strong>Lecteur</strong><br>Consulte le registre sans le modifier.</p></div>
+  </div>
+</section>
+{% endblock %}

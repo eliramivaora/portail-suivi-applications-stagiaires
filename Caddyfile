@@ -1,0 +1,10 @@
+:80 {
+	@provisioner path /grafana /grafana/*
+	handle @provisioner {
+		reverse_proxy grafana:3000
+	}
+
+	handle {
+		reverse_proxy demo-app:8000
+	}
+}

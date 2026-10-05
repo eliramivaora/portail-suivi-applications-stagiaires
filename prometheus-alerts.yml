@@ -1,0 +1,57 @@
+groups:
+  - name: applications
+    interval: 30s
+    rules:
+      - alert: ApplicationWithoutHeartbeat
+        expr: time() - stagiaires_app_heartbeat_timestamp_seconds{service_name!=""} > 300
+        for: 1m
+        labels:
+          severity: critical
+          category: application
+        annotations:
+          summary: "Application {{ $labels.service_name }} silencieuse"
+          description: "Aucun battement de coeur reçu depuis plus de 5 minutes."
+
+      - alert: ApplicationErrorRateHigh
+        expr: |
+          (
+            sum by (service_name) (rate(stagiaires_app_requests_total{status_code=~"5.."}[5m]))
+            /
+            clamp_min(sum by (service_name) (rate(stagiaires_app_requests_total[5m])), 0.001)
+          ) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "Taux d'erreurs élevé pour {{ $labels.service_name }}"
+          description: "Le taux de réponses HTTP 5xx dépasse 5 % sur les 5 dernières minutes."
+
+      - alert: ApplicationLatencyHigh
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le, service_name) (
+              rate(stagiaires_app_request_duration_milliseconds_bucket[5m])
+            )
+          ) > 1000
+        for: 2m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "Temps de réponse élevé pour {{ $labels.service_name }}"
+          description: "Le 95e percentile du temps de réponse dépasse 1 seconde (1000 ms)."
+
+  - name: observability-stack
+    interval: 30s
+    rules:
+      - alert: ObservabilityComponentDown
+        expr: up{job=~"otel-collector|tempo|loki|grafana"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: platform
+        annotations:
+          summary: "Composant de supervision indisponible: {{ $labels.job }}"
+          description: "Prometheus ne parvient plus à joindre la cible {{ $labels.instance }}."

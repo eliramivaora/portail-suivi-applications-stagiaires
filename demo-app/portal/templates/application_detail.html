@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-heading page-heading-compact">
+  <div>
+    <div class="eyebrow"><a href="/applications">APPLICATIONS</a> <span>·</span> FICHE DE SERVICE</div>
+    <div class="detail-title-row">
+      <span class="service-state detail-state {% if application.archived %}state-archived{% else %}state-followed{% endif %}" aria-label="{% if application.archived %}Archivée{% else %}En suivi{% endif %}"></span>
+      <h1>{{ application.name }}</h1>
+    </div>
+    <p class="page-lede"><code>{{ application.service_name }}</code>{% if application.archived %}<span class="status-label status-muted">ARCHIVÉE</span>{% else %}<span class="status-label status-live">EN SUIVI</span>{% endif %}<span class="health-pill health-{{ health.status }}" data-health-status="{{ health.status }}" data-health-endpoint="/applications/{{ application.id }}/health" role="status" aria-live="polite" title="{{ health.description }}"><i aria-hidden="true"></i><span data-health-label>{{ health.label }}</span></span></p>
+    <small class="health-description" data-health-description>{{ health.description }}</small>
+  </div>
+  <div class="heading-actions">
+    {% if can_edit %}
+    <a class="button button-secondary" href="/applications/{{ application.id }}/edit">Modifier la fiche</a>
+    <form method="post" action="/applications/{{ application.id }}/archive">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="button button-quiet" type="submit">{% if application.archived %}Réactiver{% else %}Archiver{% endif %}</button>
+    </form>
+    {% endif %}
+    <a class="button button-primary" href="/grafana/d/stagiaires-applications/applications-stagiaires?var-application={{ application.service_name|urlencode }}" target="_blank" rel="noopener">Ouvrir Grafana <span aria-hidden="true">↗</span></a>
+  </div>
+</div>
+<div class="detail-layout">
+  <div class="detail-main">
+    <section class="record-sheet">
+      <header class="sheet-heading"><span>IDENTIFICATION DU SERVICE</span><span class="sheet-number">FICHE {{ '%04d'|format(application.id) }}</span></header>
+      <dl class="detail-grid">
+        <div class="detail-field"><dt>Responsable</dt><dd><span class="owner-cell"><span class="avatar avatar-small" aria-hidden="true">{{ application.owner.name[:1]|upper }}</span>{{ application.owner.name }}</span></dd></div>
+        <div class="detail-field"><dt>Langage</dt><dd>{{ application.language or 'Non renseigné' }}</dd></div>
+        <div class="detail-field"><dt>Version</dt><dd>{{ application.version or 'Non renseignée' }}</dd></div>
+        <div class="detail-field"><dt>Dépôt Git</dt><dd>{% if application.repository_url %}<a class="text-link" href="{{ application.repository_url }}" target="_blank" rel="noopener noreferrer">{{ application.repository_url }} <span aria-hidden="true">↗</span></a>{% else %}Non renseigné{% endif %}</dd></div>
+        <div class="detail-field"><dt>Début du stage</dt><dd>{{ application.internship_start.strftime('%d/%m/%Y') if application.internship_start else 'Non renseigné' }}</dd></div>
+        <div class="detail-field"><dt>Fin du stage</dt><dd>{{ application.internship_end.strftime('%d/%m/%Y') if application.internship_end else 'Non renseignée' }}</dd></div>
+        <div class="detail-field detail-field-wide"><dt>Description</dt><dd class="description-copy">{{ application.description or 'Aucune description n’a été ajoutée.' }}</dd></div>
+      </dl>
+    </section>
+    <section class="telemetry-sheet">
+      <div class="sheet-heading"><span>SUPERVISION</span><span class="telemetry-chip"><i></i> COLLECTEUR OTLP</span></div>
+      <div class="telemetry-content">
+        <div class="telemetry-id"><span class="telemetry-icon" aria-hidden="true">⌁</span><div><strong>{{ application.service_name }}</strong><small data-health-age>{% if health.age_seconds is not none %}Dernier battement reçu il y a {{ health.age_seconds|round|int }} s{% else %}Mesure calculée à partir des battements OpenTelemetry{% endif %}</small></div></div>
+        <p>Les graphiques ci-dessous suivent ce service. Le statut est recalculé toutes les 30 secondes à partir du dernier battement reçu par Prometheus.</p>
+        <div class="embedded-dashboard">
+          <iframe src="/grafana/d/stagiaires-applications/applications-stagiaires?var-application={{ application.service_name|urlencode }}&amp;from=now-1h&amp;to=now&amp;refresh=30s" title="Tableau de bord Grafana pour {{ application.name }}" loading="lazy" referrerpolicy="same-origin"></iframe>
+        </div>
+        <p class="dashboard-access-note">L’affichage intégré requiert une session Grafana. Si le tableau de bord ne s’affiche pas, ouvrez-le séparément puis connectez-vous.</p>
+        <a class="text-link" href="/grafana/d/stagiaires-applications/applications-stagiaires?var-application={{ application.service_name|urlencode }}" target="_blank" rel="noopener">Ouvrir le tableau de bord dans Grafana <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+  </div>
+  <aside class="history-rail">
+    <div class="aside-heading"><span>HISTORIQUE DE LA FICHE</span><span class="aside-index">{{ '%02d'|format(history_entries|length) }}</span></div>
+    <ol class="history-list">
+      {% for entry in history_entries %}
+      <li class="history-entry">
+        <span class="history-marker" aria-hidden="true"></span>
+        <div><strong>{% if entry.action == 'created' %}Fiche créée{% elif entry.action == 'updated' %}Fiche modifiée{% elif entry.action == 'archived' %}Application archivée{% elif entry.action == 'restored' %}Application réactivée{% endif %}</strong>
+        <small>{{ entry.actor.name if entry.actor else 'Compte supprimé' }}</small>
+        <time datetime="{{ entry.created_at.isoformat() }}">{{ entry.created_at.strftime('%d/%m/%Y · %H:%M') }}</time>
+        {% if entry.action == 'updated' %}
+        <details class="change-details"><summary>Voir les changements</summary><ul>{% for field, change in entry.changes_json|loads|items %}<li>{{ field }} : {{ change.old or '—' }} → {{ change.new or '—' }}</li>{% endfor %}</ul></details>
+        {% endif %}
+        </div>
+      </li>
+      {% else %}
+      <li class="history-empty">Aucun changement enregistré.</li>
+      {% endfor %}
+    </ol>
+  </aside>
+</div>
+{% endblock %}

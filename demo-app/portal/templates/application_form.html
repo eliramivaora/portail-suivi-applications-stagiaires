@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-heading page-heading-compact">
+  <div>
+    <div class="eyebrow"><a href="/applications">APPLICATIONS</a> <span>·</span> FICHE TECHNIQUE</div>
+    <h1>{{ page_title }}</h1>
+    <p class="page-lede">Les informations de cette fiche sont associées à OTEL_SERVICE_NAME.</p>
+  </div>
+  <a class="button button-quiet" href="{% if application %}/applications/{{ application.id }}{% else %}/applications{% endif %}">Annuler</a>
+</div>
+<form class="record-form" method="post" action="{% if application %}/applications/{{ application.id }}/edit{% else %}/applications/new{% endif %}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  {% if error %}<div class="form-error form-error-wide" role="alert">{{ error }}</div>{% endif %}
+  <fieldset>
+    <legend><span class="legend-number">01</span> Identification du service</legend>
+    <div class="form-grid">
+      <div class="field-group field-wide">
+        <label for="name">Nom de l’application <span class="required-mark">*</span></label>
+        <input id="name" name="name" type="text" required maxlength="120" value="{{ values.name }}" placeholder="Ex. Portail de réservation">
+      </div>
+      <div class="field-group">
+        <label for="service_name">Nom de service OpenTelemetry <span class="required-mark">*</span></label>
+        <input id="service_name" name="service_name" type="text" required maxlength="120" pattern="[A-Za-z0-9][A-Za-z0-9._-]{0,119}" value="{{ values.service_name }}" placeholder="ex. reservations-api">
+        <small>Doit correspondre à <code>OTEL_SERVICE_NAME</code>. Lettres, chiffres, points, tirets et tirets bas.</small>
+      </div>
+      <div class="field-group">
+        <label for="language">Langage</label>
+        <select id="language" name="language">
+          <option value="">À préciser</option>
+          {% for language in ['Python', 'Node.js', 'PHP', 'Java', 'Go', 'Autre'] %}
+          <option value="{{ language }}" {% if values.language == language %}selected{% endif %}>{{ language }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field-group field-wide">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="3" maxlength="4000" placeholder="À quoi sert cette application ?">{{ values.description }}</textarea>
+      </div>
+      <div class="field-group">
+        <label for="repository_url">Dépôt Git</label>
+        <input id="repository_url" name="repository_url" type="url" maxlength="500" value="{{ values.repository_url }}" placeholder="https://git.example/organisation/projet">
+      </div>
+      <div class="field-group">
+        <label for="version">Version</label>
+        <input id="version" name="version" type="text" maxlength="80" value="{{ values.version }}" placeholder="Ex. 1.0.0">
+      </div>
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend><span class="legend-number">02</span> Responsable et période de stage</legend>
+    <div class="form-grid">
+      {% if current_user.role == 'admin' %}
+      <div class="field-group field-wide">
+        <label for="owner_id">Stagiaire responsable <span class="required-mark">*</span></label>
+        <select id="owner_id" name="owner_id" required>
+          <option value="">Sélectionner un stagiaire</option>
+          {% for intern in interns %}
+          <option value="{{ intern.id }}" {% if values.owner_id == intern.id|string %}selected{% endif %}>{{ intern.name }} · {{ intern.email }}</option>
+          {% endfor %}
+        </select>
+        {% if not interns %}<small>Créez d’abord un compte avec le rôle Stagiaire dans la rubrique Comptes.</small>{% endif %}
+      </div>
+      {% else %}
+      <div class="field-group field-wide">
+        <label>Stagiaire responsable</label>
+        <div class="readonly-field"><span class="avatar avatar-small" aria-hidden="true">{{ current_user.name[:1]|upper }}</span>{{ current_user.name }} <span class="readonly-note">Votre compte</span></div>
+      </div>
+      {% endif %}
+      <div class="field-group">
+        <label for="internship_start">Début du stage</label>
+        <input id="internship_start" name="internship_start" type="date" value="{{ values.internship_start }}">
+      </div>
+      <div class="field-group">
+        <label for="internship_end">Fin du stage</label>
+        <input id="internship_end" name="internship_end" type="date" value="{{ values.internship_end }}">
+      </div>
+    </div>
+  </fieldset>
+  <div class="form-actions">
+    <p><span class="required-mark">*</span> Champ obligatoire</p>
+    <div><a class="button button-quiet" href="{% if application %}/applications/{{ application.id }}{% else %}/applications{% endif %}">Annuler</a><button class="button button-primary" type="submit">Enregistrer la fiche <span aria-hidden="true">→</span></button></div>
+  </div>
+</form>
+{% endblock %}

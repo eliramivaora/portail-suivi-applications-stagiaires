@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.py[cod]
+.venv/
+data/
+.impeccable/hook.cache.json
+.pytest_cache/
+*.db
+*.sqlite
+*.sqlite3

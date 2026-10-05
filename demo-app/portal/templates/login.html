@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block public_content %}
+<main class="login-page">
+  <section class="login-story">
+    <a class="brand brand-login" href="/login">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="brand-copy"><strong>REGISTRE</strong><small>Applications stagiaires</small></span>
+    </a>
+    <div class="login-message">
+      <div class="register-illustration" aria-hidden="true">
+        <span class="illustration-topline"></span>
+        <span class="illustration-row"><i class="signal-dot dot-live"></i><b>paiement-api</b><small>EN SUIVI</small></span>
+        <span class="illustration-row"><i class="signal-dot dot-warn"></i><b>catalogue-web</b><small>À VÉRIFIER</small></span>
+        <span class="illustration-row"><i class="signal-dot dot-quiet"></i><b>stage-portal</b><small>EN SUIVI</small></span>
+        <span class="illustration-foot">SERVICE <span>RESPONSABLE</span> DERNIER SIGNAL</span>
+      </div>
+      <h1>Chaque application.<br>Son responsable.<br>Son état.</h1>
+      <p>Le registre local des applications développées pendant les stages.</p>
+    </div>
+    <div class="login-story-foot"><span>SUPERVISION TECHNIQUE</span><span>ENVIRONNEMENT LOCAL</span></div>
+  </section>
+  <section class="login-form-side">
+    <form class="login-form" method="post" action="/login">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="form-caption">ACCÈS AU PORTAIL <span>01 / IDENTIFICATION</span></div>
+      <h2>Connexion</h2>
+      <p class="login-intro">Connectez-vous avec votre compte d’entreprise.</p>
+      {% if error %}<div class="form-error" role="alert">{{ error }}</div>{% endif %}
+      <label for="email">Adresse e-mail</label>
+      <input id="email" name="email" type="email" autocomplete="username" required maxlength="254" autofocus>
+      <label for="password">Mot de passe</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+      <button class="button button-primary button-wide" type="submit">Se connecter <span aria-hidden="true">→</span></button>
+      <p class="privacy-note"><span aria-hidden="true">●</span> Connexion locale sécurisée · Aucun compte public</p>
+    </form>
+  </section>
+</main>
+{% endblock %}

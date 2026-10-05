@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-heading page-heading-compact">
+  <div>
+    <div class="eyebrow"><a href="/users">COMPTES</a> <span>·</span> ACCÈS PORTAIL</div>
+    <h1>Créer un compte</h1>
+    <p class="page-lede">L’utilisateur recevra ses identifiants par votre canal interne.</p>
+  </div>
+  <a class="button button-quiet" href="/users">Annuler</a>
+</div>
+<form class="record-form user-form" method="post" action="/users/new">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  {% if error %}<div class="form-error form-error-wide" role="alert">{{ error }}</div>{% endif %}
+  <fieldset>
+    <legend><span class="legend-number">01</span> Identité et droits d’accès</legend>
+    <div class="form-grid">
+      <div class="field-group field-wide"><label for="name">Nom complet <span class="required-mark">*</span></label><input id="name" name="name" type="text" autocomplete="name" required maxlength="120" value="{{ values.name }}"></div>
+      <div class="field-group field-wide"><label for="email">Adresse e-mail <span class="required-mark">*</span></label><input id="email" name="email" type="email" autocomplete="email" required maxlength="254" value="{{ values.email }}"></div>
+      <div class="field-group"><label for="role">Rôle <span class="required-mark">*</span></label><select id="role" name="role" required>{% for value,label in role_labels.items() %}<option value="{{ value }}" {% if values.role == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+      <div class="field-group"><label for="password">Mot de passe temporaire <span class="required-mark">*</span></label><input id="password" name="password" type="password" autocomplete="new-password" required minlength="12"><small>Au moins 12 caractères. Transmettez-le par un canal distinct.</small></div>
+    </div>
+  </fieldset>
+  <div class="form-actions"><p><span class="required-mark">*</span> Champ obligatoire</p><div><a class="button button-quiet" href="/users">Annuler</a><button class="button button-primary" type="submit">Créer le compte <span aria-hidden="true">→</span></button></div></div>
+</form>
+{% endblock %}
